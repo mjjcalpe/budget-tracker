@@ -32,6 +32,16 @@ export default function CleanVault() {
   const [amount, setAmount] = useState('');
   const [mode, setMode] = useState<'expense' | 'savings'>('expense');
 
+  // Helper for Philippine Peso Formatting
+  const formatPHP = (num: number) => {
+    return new Intl.NumberFormat('en-PH', {
+      style: 'currency',
+      currency: 'PHP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num);
+  };
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => setUser(u));
     return () => unsubscribe();
@@ -93,15 +103,15 @@ export default function CleanVault() {
         
         <form onSubmit={handleEmailAuth} className="space-y-4">
           <input 
-            type="email" placeholder="Email" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm"
+            type="email" placeholder="Email" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm text-white"
             value={email} onChange={e => setEmail(e.target.value)} required
           />
           <input 
-            type="password" placeholder="Password" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm"
+            type="password" placeholder="Password" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm text-white"
             value={password} onChange={e => setPassword(e.target.value)} required
           />
           {authError && <p className="text-red-500 text-[10px] text-center">{authError}</p>}
-          <button type="submit" className="w-full bg-blue-600 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">
+          <button type="submit" className="w-full bg-blue-600 py-3 rounded-xl font-bold uppercase tracking-widest text-xs text-white">
             {isRegistering ? 'Create Account' : 'Sign In'}
           </button>
         </form>
@@ -139,34 +149,34 @@ export default function CleanVault() {
         </div>
       </div>
 
-      {/* REMAINDER OF UI (Budget Cards, Calendar, Inputs) - Same as previous version */}
       <div className="grid grid-cols-2 gap-3 mb-6">
         <div className={`p-4 rounded-2xl border ${remaining < 0 ? 'border-red-500 bg-red-500/5' : 'border-zinc-800 bg-zinc-900'}`}>
           <div className="flex justify-between items-start">
             <span className="text-zinc-500 font-bold uppercase text-[9px]">Remaining</span>
-            <button onClick={() => setIsEditingBudget(true)} className="text-blue-500">Edit</button>
+            <button onClick={() => setIsEditingBudget(true)} className="text-blue-500 text-[9px] uppercase font-bold">Edit</button>
           </div>
           {isEditingBudget ? (
             <input 
-              autoFocus className="bg-transparent text-xl font-black w-full outline-none border-b border-blue-500"
+              autoFocus className="bg-transparent text-xl font-black w-full outline-none border-b border-blue-500 text-white"
               value={tempBudget} onChange={e => setTempBudget(e.target.value)} onBlur={saveBudget}
             />
           ) : (
-            <p className={`text-2xl font-black ${remaining < 0 ? 'text-red-500' : 'text-green-500'}`}>${remaining.toFixed(0)}</p>
+            <p className={`text-2xl font-black ${remaining < 0 ? 'text-red-500' : 'text-green-500'}`}>
+              {formatPHP(remaining)}
+            </p>
           )}
         </div>
         <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
           <span className="text-zinc-500 font-bold uppercase text-[9px]">Total Savings</span>
-          <p className="text-2xl font-black text-blue-400">${totalSavings.toFixed(0)}</p>
+          <p className="text-2xl font-black text-blue-400">{formatPHP(totalSavings)}</p>
         </div>
       </div>
 
-      {/* CALENDAR & INPUTS (Copying from previous logic to ensure it's complete) */}
       <div className="flex gap-4 mb-4 justify-center items-center bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/50">
-        <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-transparent font-bold outline-none">
+        <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-transparent font-bold outline-none text-white">
           {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => <option key={m} value={i} className="bg-zinc-900">{m}</option>)}
         </select>
-        <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-transparent font-bold outline-none">
+        <select value={viewYear} onChange={(e) => setViewYear(Number(e.target.value))} className="bg-transparent font-bold outline-none text-white">
           {[2024, 2025, 2026].map(y => <option key={y} value={y} className="bg-zinc-900">{y}</option>)}
         </select>
       </div>
@@ -180,7 +190,7 @@ export default function CleanVault() {
           return (
             <button key={i} onClick={() => setSelectedDate(d)} className={`h-10 rounded-lg flex flex-col items-center justify-center border ${selectedDate === d ? 'border-blue-500 bg-blue-500/10' : 'border-zinc-800 bg-zinc-950'}`}>
               <span className="font-bold text-[9px]">{i + 1}</span>
-              {dayTotal > 0 && <span className="text-[7px] text-red-500 font-bold">-{dayTotal.toFixed(0)}</span>}
+              {dayTotal > 0 && <span className="text-[7px] text-red-500 font-bold">-{dayTotal}</span>}
             </button>
           );
         })}
@@ -192,15 +202,17 @@ export default function CleanVault() {
           <button onClick={() => setMode('savings')} className={`flex-1 py-2 rounded-lg font-bold ${mode === 'savings' ? 'bg-zinc-800 text-blue-400' : 'text-zinc-600'}`}>SAVINGS</button>
         </div>
         <div className="flex gap-2">
-          <input className="flex-1 bg-zinc-800 p-3 rounded-xl outline-none" placeholder="Description" value={label} onChange={e => setLabel(e.target.value)} />
-          <input type="number" className="w-20 bg-zinc-800 p-3 rounded-xl outline-none" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} />
-          <button onClick={saveEntry} className="px-4 rounded-xl font-black bg-blue-600">SAVE</button>
+          <input className="flex-1 bg-zinc-800 p-3 rounded-xl outline-none text-white" placeholder="Description" value={label} onChange={e => setLabel(e.target.value)} />
+          <input type="number" className="w-20 bg-zinc-800 p-3 rounded-xl outline-none text-white" placeholder="0" value={amount} onChange={e => setAmount(e.target.value)} />
+          <button onClick={saveEntry} className="px-4 rounded-xl font-black bg-blue-600 text-white">SAVE</button>
         </div>
         <div className="space-y-1">
           {list.filter(i => i.date === selectedDate).map(item => (
             <div key={item.id} className="bg-black/40 p-2 px-3 rounded-xl flex justify-between border border-transparent hover:border-zinc-800">
               <span className="text-zinc-300">{item.label} {item.isSavings && <span className="text-blue-500 ml-1">●</span>}</span>
-              <span className={`font-mono font-bold ${item.isSavings ? 'text-blue-400' : 'text-zinc-100'}`}>${item.amount.toFixed(0)}</span>
+              <span className={`font-mono font-bold ${item.isSavings ? 'text-blue-400' : 'text-zinc-100'}`}>
+                {formatPHP(item.amount)}
+              </span>
             </div>
           ))}
         </div>
