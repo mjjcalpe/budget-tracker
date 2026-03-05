@@ -20,7 +20,7 @@ export default function CleanVault() {
 
   const [list, setList] = useState<any[]>([]);
   const [budget, setBudget] = useState(2000);
-  const [savings, setSavings] = useState(0); // New state for editable savings
+  const [savings, setSavings] = useState(0);
   
   const [isEditingBudget, setIsEditingBudget] = useState(false);
   const [isEditingSavings, setIsEditingSavings] = useState(false);
@@ -50,7 +50,6 @@ export default function CleanVault() {
     return () => unsubscribe();
   }, []);
 
-  // Sync Settings (Budget & Savings)
   useEffect(() => {
     if (!user) return;
     const settingsRef = doc(db, "settings", user.uid);
@@ -65,7 +64,6 @@ export default function CleanVault() {
     });
   }, [user]);
 
-  // Sync Expenses Only
   useEffect(() => {
     if (!user) return;
     const q = query(collection(db, "expenses"), where("uid", "==", user.uid), orderBy("date", "desc"));
@@ -124,47 +122,68 @@ export default function CleanVault() {
   };
 
   if (!user) return (
-    <div className="h-screen bg-black flex flex-col items-center justify-center p-6 text-white">
+    <div className="h-screen bg-black flex flex-col items-center justify-center p-6 text-white font-sans">
       <div className="w-full max-w-sm bg-zinc-900 p-8 rounded-3xl border border-zinc-800 shadow-2xl">
-        <h1 className="text-3xl font-black text-blue-500 mb-6 text-center tracking-tighter">Budget Tracker</h1>
+        <h1 className="text-3xl font-black text-blue-500 mb-6 text-center tracking-tighter uppercase">Vault</h1>
+        
         <form onSubmit={handleEmailAuth} className="space-y-4">
-          <input type="email" placeholder="Email" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm" value={email} onChange={e => setEmail(e.target.value)} required />
-          <input type="password" placeholder="Password" className="w-full bg-zinc-800 p-3 rounded-xl outline-none text-sm" value={password} onChange={e => setPassword(e.target.value)} required />
-          {authError && <p className="text-red-500 text-[10px] text-center">{authError}</p>}
-          <button type="submit" className="w-full bg-blue-600 py-3 rounded-xl font-bold uppercase tracking-widest text-xs">
+          <input type="email" placeholder="Email" className="w-full bg-zinc-800 p-4 rounded-xl outline-none text-sm border border-transparent focus:border-blue-500/50" value={email} onChange={e => setEmail(e.target.value)} required />
+          <input type="password" placeholder="Password" className="w-full bg-zinc-800 p-4 rounded-xl outline-none text-sm border border-transparent focus:border-blue-500/50" value={password} onChange={e => setPassword(e.target.value)} required />
+          {authError && <p className="text-red-500 text-[10px] text-center font-bold uppercase">{authError}</p>}
+          <button type="submit" className="w-full bg-blue-600 py-4 rounded-xl font-bold uppercase tracking-widest text-xs active:scale-95 transition-transform">
             {isRegistering ? 'Create Account' : 'Sign In'}
           </button>
         </form>
-        <div className="mt-4 text-center">
-          <button onClick={() => setIsRegistering(!isRegistering)} className="text-zinc-500 text-[10px] uppercase font-bold hover:text-white">
-            {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
-          </button>
+
+        <button onClick={() => setIsRegistering(!isRegistering)} className="w-full mt-4 text-zinc-500 text-[9px] uppercase font-black hover:text-white tracking-widest">
+          {isRegistering ? 'Already have an account? Login' : 'Need an account? Register'}
+        </button>
+
+        <div className="relative my-8">
+          <div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-800"></span></div>
+          <div className="relative flex justify-center text-[9px] uppercase font-black text-zinc-600">
+            <span className="bg-zinc-900 px-3 tracking-widest">Or</span>
+          </div>
         </div>
-        <div className="relative my-6"><div className="absolute inset-0 flex items-center"><span className="w-full border-t border-zinc-800"></span></div><div className="relative flex justify-center text-[10px] uppercase font-bold text-zinc-600"><span className="bg-zinc-900 px-2">Or</span></div></div>
-        <button onClick={() => signInWithPopup(auth, provider)} className="w-full bg-white text-black py-3 rounded-xl font-bold text-xs flex items-center justify-center gap-2">Continue with Google</button>
+
+        {/* GOOGLE SIGN IN RESTORED */}
+        <button 
+          onClick={() => signInWithPopup(auth, provider)} 
+          className="w-full bg-white text-black py-4 rounded-xl font-bold text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-transform"
+        >
+          <svg className="w-4 h-4" viewBox="0 0 24 24">
+            <path fill="currentColor" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+            <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z" />
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" />
+          </svg>
+          Continue with Google
+        </button>
       </div>
     </div>
   );
-
   const totalSpent = list.reduce((a, b) => a + b.amount, 0);
   const remaining = budget - totalSpent;
+  const selectedDateExpenses = list.filter(i => i.date === selectedDate);
+  const otherExpenses = list.filter(i => i.date !== selectedDate);
 
   return (
-    <main className="p-4 max-w-4xl mx-auto text-white bg-black min-h-screen text-[11px]">
+    <main className="p-4 max-w-4xl mx-auto text-white bg-black min-h-screen text-[11px] font-sans">
+      {/* HEADER */}
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-xl font-black text-blue-500 tracking-tighter">Vault Tracker</h1>
+        <h1 className="text-xl font-black text-blue-500 tracking-tighter uppercase">Vault</h1>
         <div className="flex items-center gap-4">
           <span className="text-zinc-500 uppercase font-bold text-[9px]">{user.email?.split('@')[0]}</span>
           <button onClick={() => signOut(auth)} className="bg-zinc-900 border border-zinc-800 px-3 py-1.5 rounded-lg text-zinc-500 font-bold hover:text-white">LOGOUT</button>
         </div>
       </div>
 
+      {/* SUMMARY CARDS */}
       <div className="grid grid-cols-2 gap-3 mb-6">
-        {/* REMAINING CARD */}
         <div className={`p-4 rounded-2xl border ${remaining < 0 ? 'border-red-500 bg-red-500/5' : 'border-zinc-800 bg-zinc-900'}`}>
-          <div className="flex justify-between items-start">
+          <div className="flex justify-between items-start mb-1">
             <span className="text-zinc-500 font-bold uppercase text-[9px]">Remaining</span>
-            <button onClick={() => setIsEditingBudget(true)} className="text-blue-500 text-[9px] uppercase font-bold hover:underline">Edit</button>
+            <button onClick={() => setIsEditingBudget(true)} className="text-blue-500 text-[9px] uppercase font-bold">Edit</button>
           </div>
           {isEditingBudget ? (
             <input autoFocus className="bg-transparent text-xl font-black w-full outline-none border-b border-blue-500" value={tempBudget} onChange={e => setTempBudget(e.target.value)} onBlur={() => saveSettings('budget')} />
@@ -173,11 +192,10 @@ export default function CleanVault() {
           )}
         </div>
 
-        {/* EDITABLE SAVINGS CARD */}
         <div className="p-4 rounded-2xl bg-zinc-900 border border-zinc-800">
-          <div className="flex justify-between items-start">
-            <span className="text-zinc-500 font-bold uppercase text-[9px]">Total Savings</span>
-            <button onClick={() => setIsEditingSavings(true)} className="text-blue-400 text-[9px] uppercase font-bold hover:underline">Edit</button>
+          <div className="flex justify-between items-start mb-1">
+            <span className="text-zinc-500 font-bold uppercase text-[9px]">Savings</span>
+            <button onClick={() => setIsEditingSavings(true)} className="text-blue-400 text-[9px] uppercase font-bold">Edit</button>
           </div>
           {isEditingSavings ? (
             <input autoFocus className="bg-transparent text-xl font-black w-full outline-none border-b border-blue-400" value={tempSavings} onChange={e => setTempSavings(e.target.value)} onBlur={() => saveSettings('savings')} />
@@ -187,7 +205,7 @@ export default function CleanVault() {
         </div>
       </div>
 
-      {/* CALENDAR */}
+      {/* CALENDAR NAVIGATION */}
       <div className="flex gap-4 mb-4 justify-center items-center bg-zinc-900/50 p-2 rounded-xl border border-zinc-800/50">
         <select value={viewMonth} onChange={(e) => setViewMonth(Number(e.target.value))} className="bg-transparent font-bold outline-none cursor-pointer">
           {["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"].map((m, i) => <option key={m} value={i} className="bg-zinc-900">{m}</option>)}
@@ -197,7 +215,7 @@ export default function CleanVault() {
         </select>
       </div>
 
-      <div className="grid grid-cols-7 gap-1 mb-6">
+      <div className="grid grid-cols-7 gap-1 mb-8">
         {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => <div key={i} className="text-center text-zinc-700 font-bold text-[8px] mb-1">{d}</div>)}
         {Array.from({ length: new Date(viewYear, viewMonth, 1).getDay() }).map((_, i) => <div key={`e-${i}`} />)}
         {Array.from({ length: new Date(viewYear, viewMonth + 1, 0).getDate() }).map((_, i) => {
@@ -212,34 +230,69 @@ export default function CleanVault() {
         })}
       </div>
 
-      {/* INPUT SECTION (Expenses Only Now) */}
-      <div className="bg-zinc-900 p-4 rounded-3xl border border-zinc-800 space-y-4 shadow-xl">
-        <div className="flex gap-2">
-          <input className="flex-1 bg-zinc-800 p-3 rounded-xl outline-none border border-transparent focus:border-zinc-700" placeholder="What did you buy?" value={label} onChange={e => setLabel(e.target.value)} />
-          <input type="number" className="w-24 bg-zinc-800 p-3 rounded-xl outline-none border border-transparent focus:border-zinc-700" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} />
-          <button onClick={saveExpense} className="px-5 rounded-xl font-black bg-blue-600 text-[10px] uppercase tracking-tighter active:scale-95 transition-transform">
-            {editingId ? 'Update' : 'Add Expense'}
-          </button>
-          {editingId && <button onClick={() => {setEditingId(null); setLabel(''); setAmount('');}} className="px-2 text-zinc-500 hover:text-white transition-colors">✕</button>}
+      {/* INPUT & SELECTED DAY */}
+      <div className="bg-zinc-900 p-5 rounded-3xl border border-zinc-800 space-y-5 shadow-xl mb-8">
+        <div className="flex flex-col gap-3">
+          <input className="w-full bg-zinc-800 p-4 rounded-xl outline-none border border-transparent focus:border-zinc-700 text-sm" placeholder="Label" value={label} onChange={e => setLabel(e.target.value)} />
+          <div className="flex gap-2">
+            <input type="number" className="flex-1 bg-zinc-800 p-4 rounded-xl outline-none border border-transparent focus:border-zinc-700 text-sm" placeholder="Amount" value={amount} onChange={e => setAmount(e.target.value)} />
+            <button onClick={saveExpense} className="px-6 rounded-xl font-black bg-blue-600 text-[10px] uppercase tracking-tighter active:scale-95 transition-transform">
+              {editingId ? 'Update' : 'Add'}
+            </button>
+          </div>
         </div>
 
-        <div className="space-y-1">
-          <p className="text-zinc-600 font-bold uppercase text-[8px] mb-2 px-1">Transactions for {selectedDate}</p>
-          {list.filter(i => i.date === selectedDate).length === 0 && <p className="text-zinc-700 italic px-1">No expenses recorded today.</p>}
-          {list.filter(i => i.date === selectedDate).map(item => (
-            <div key={item.id} className="group bg-black/40 p-2 px-3 rounded-xl flex justify-between items-center border border-transparent hover:border-zinc-800 transition-colors">
-              <div className="flex flex-col">
-                <span className="text-zinc-300 font-medium">{item.label}</span>
-                <div className="flex gap-3 mt-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                   <button onClick={() => { setEditingId(item.id); setLabel(item.label); setAmount(item.amount.toString()); }} className="text-blue-500 text-[8px] font-bold uppercase tracking-widest hover:underline">Edit</button>
-                   <button onClick={() => deleteExpense(item.id)} className="text-red-500 text-[8px] font-bold uppercase tracking-widest hover:underline">Delete</button>
-                </div>
-              </div>
-              <span className="font-mono font-bold text-zinc-100">{formatPHP(item.amount)}</span>
-            </div>
+        <div className="space-y-2">
+          <p className="text-blue-500 font-black uppercase text-[8px] px-1 tracking-widest">Transactions for {selectedDate}</p>
+          {selectedDateExpenses.length === 0 && <p className="text-zinc-700 italic px-1 text-[10px]">No records.</p>}
+          {selectedDateExpenses.map(item => (
+            <ExpenseItem key={item.id} item={item} onEdit={setEditingId} onDelete={deleteExpense} setLabel={setLabel} setAmount={setAmount} />
           ))}
         </div>
       </div>
+
+      {/* HISTORY FEED */}
+      <div className="space-y-6 pb-20">
+        <p className="text-zinc-600 font-black uppercase text-[8px] px-1 tracking-widest">Other History</p>
+        {otherExpenses.length === 0 && <p className="text-zinc-800 italic px-1 text-[10px]">Empty history.</p>}
+        
+        {Array.from(new Set(otherExpenses.map(i => i.date))).map(dateGroup => (
+          <div key={dateGroup} className="space-y-2">
+            <p className="text-zinc-800 font-bold text-[8px] px-2 border-l border-zinc-800 ml-1">{dateGroup}</p>
+            {otherExpenses.filter(i => i.date === dateGroup).map(item => (
+              <ExpenseItem key={item.id} item={item} onEdit={setEditingId} onDelete={deleteExpense} setLabel={setLabel} setAmount={setAmount} />
+            ))}
+          </div>
+        ))}
+      </div>
     </main>
+  );
+}
+
+// MOBILE OPTIMIZED ITEM COMPONENT
+function ExpenseItem({ item, onEdit, onDelete, setLabel, setAmount }: any) {
+  const formatPHP = (num: number) => new Intl.NumberFormat('en-PH', { style: 'currency', currency: 'PHP', minimumFractionDigits: 0 }).format(num);
+
+  return (
+    <div className="bg-zinc-900/60 p-3 px-4 rounded-2xl flex justify-between items-center border border-zinc-800/50">
+      <div className="flex flex-col gap-2">
+        <span className="text-zinc-200 font-bold text-sm tracking-tight">{item.label}</span>
+        <div className="flex gap-4">
+          <button 
+            onClick={() => { onEdit(item.id); setLabel(item.label); setAmount(item.amount.toString()); window.scrollTo({ top: 0, behavior: 'smooth' }); }} 
+            className="text-blue-500 text-[9px] font-black uppercase tracking-tighter"
+          >
+            Edit
+          </button>
+          <button 
+            onClick={() => onDelete(item.id)} 
+            className="text-red-500/80 text-[9px] font-black uppercase tracking-tighter"
+          >
+            Delete
+          </button>
+        </div>
+      </div>
+      <span className="font-mono font-black text-zinc-100 text-sm">{formatPHP(item.amount)}</span>
+    </div>
   );
 }
